@@ -27,7 +27,6 @@ export class AuthorizationService {
     }
     
     // If no rules are specified, all users are authorized
-    // Change this if you want stricter default behavior
     return true;
   }
 }
