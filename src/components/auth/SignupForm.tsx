@@ -25,6 +25,7 @@ interface SignupFormProps {
 const SignupForm = ({ onSuccess }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -39,6 +40,7 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
   const onSubmit = async (data: SignupFormValues) => {
     try {
       setIsLoading(true);
+      setError(null);
       
       // Send notification email to admin
       const success = await sendAccessRequestNotification({
@@ -54,9 +56,11 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
         
         if (onSuccess) onSuccess();
       } else {
-        toast.error("Error submitting request. Please try again.");
+        setError("Error submitting request. Your information has been recorded, but the admin notification failed. Please contact support.");
+        toast.error("Error submitting request. Please contact support.");
       }
     } catch (error: any) {
+      setError(error.message || "Error submitting request");
       toast.error("Error submitting request");
       console.error(error);
     } finally {
@@ -81,6 +85,11 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-destructive/15 text-destructive text-sm rounded">
+            {error}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="fullName"

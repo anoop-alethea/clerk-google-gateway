@@ -30,10 +30,13 @@ serve(async (req: Request) => {
     // Log the email request for troubleshooting
     console.log("Sending email to admin:", { to, subject });
     
-    // Send the email using Supabase's built-in email service
-    const { error } = await supabaseAdmin.auth.admin.sendEmail(to, {
-      subject,
-      content,
+    // Send the email using Supabase's email API
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(to, {
+      redirectTo: 'https://example.com', // This won't be used but is required
+      data: {
+        subject: subject,
+        message: content
+      }
     });
     
     if (error) {

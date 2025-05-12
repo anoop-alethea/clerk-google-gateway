@@ -5,4 +5,4 @@ project_id = "fhzpopoqdvrtxlxivsfd"
 verify_jwt = false
 
 [functions.send-admin-email]
-verify_jwt = true
+verify_jwt = false

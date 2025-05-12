@@ -13,7 +13,7 @@ export const sendAccessRequestNotification = async (data: AccessRequestData): Pr
     console.log("Sending access request notification:", data);
     
     // Call the Supabase Edge Function
-    const { error } = await supabase.functions.invoke('send-access-request', {
+    const { data: responseData, error } = await supabase.functions.invoke('send-access-request', {
       body: { data },
     });
     
