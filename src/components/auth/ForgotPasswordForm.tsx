@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Mail, Lock } from "lucide-react";
 import { useSignIn } from "@clerk/clerk-react";
 import { toast } from "sonner";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
