@@ -42,7 +42,7 @@ const Login = () => {
       });
 
       if (result.status === "complete") {
-        await signIn.redirectToAfterSignIn();
+        await signIn.setActive({ session: result.createdSessionId });
         toast.success("Signed in successfully!");
       } else {
         toast.error("There was a problem signing in");
