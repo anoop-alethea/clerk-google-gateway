@@ -4,12 +4,14 @@ import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ExternalLink } from "lucide-react";
+import { useDocusaurusAuth } from "@/utils/docusaurusAuth";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
+  const { docusaurusUrl, isAuthenticated } = useDocusaurusAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -17,6 +19,15 @@ const Index = () => {
     await supabase.auth.signOut();
     navigate("/login");
     toast.success("Signed out successfully");
+  };
+
+  const handleDocusaurusClick = () => {
+    if (docusaurusUrl) {
+      // Open documentation in a new tab
+      window.open(docusaurusUrl, "_blank");
+    } else {
+      toast.error("Authentication required to access documentation");
+    }
   };
 
   if (!isLoaded) {
@@ -54,9 +65,19 @@ const Index = () => {
             <Link to="/documentation">
               <Button variant="default" className="w-full sm:w-auto">
                 <BookOpen className="mr-2 h-4 w-4" />
-                Access Documentation
+                Local Documentation
               </Button>
             </Link>
+            
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto"
+              onClick={handleDocusaurusClick}
+              disabled={!isAuthenticated}
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              External Docusaurus Docs
+            </Button>
           </div>
         </main>
       </div>

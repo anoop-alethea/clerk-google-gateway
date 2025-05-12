@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
 
-## Project info
+# Secured Docusaurus Documentation
 
-**URL**: https://lovable.dev/projects/de2ec710-404a-4642-91c0-0357efae7e59
+This project implements a JWT token-based authentication system to secure access to a Docusaurus documentation site.
 
-## How can I edit this code?
+## Integration Steps for Docusaurus
 
-There are several ways of editing your application.
+To integrate this authentication system with your Docusaurus site, follow these steps:
 
-**Use Lovable**
+### 1. Copy the Authentication Wrapper
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/de2ec710-404a-4642-91c0-0357efae7e59) and start prompting.
+Copy the `DocusaurusAuthWrapper.tsx` component to your Docusaurus project's `src/components` directory.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 2. Wrap Your Docusaurus App
 
-**Use your preferred IDE**
+Modify your Docusaurus main app component to use the authentication wrapper. In your Docusaurus project, create or modify `src/theme/Root.js`:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```jsx
+import React from 'react';
+import DocusaurusAuthWrapper from '@site/src/components/DocusaurusAuthWrapper';
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+// Default implementation, wraps the site with the auth component
+function Root({children}) {
+  return (
+    <DocusaurusAuthWrapper>
+      {children}
+    </DocusaurusAuthWrapper>
+  );
+}
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+export default Root;
 ```
 
-**Edit a file directly in GitHub**
+### 3. Update Your JWT Secret
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Make sure the JWT secret in your React app (in `docusaurusAuth.ts`) matches the one you'll use to verify tokens in Docusaurus.
 
-**Use GitHub Codespaces**
+Consider using environment variables for the JWT secret in both applications.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 4. Add Styling for Auth Messages
 
-## What technologies are used for this project?
+Add CSS for the authentication loading and error states in your Docusaurus custom CSS file.
 
-This project is built with:
+### 5. Configure CORS (if needed)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+If your React app and Docusaurus site are on different domains, you may need to configure CORS settings.
 
-## How can I deploy this project?
+## Important Security Considerations
 
-Simply open [Lovable](https://lovable.dev/projects/de2ec710-404a-4642-91c0-0357efae7e59) and click on Share -> Publish.
+1. In production, use a strong random secret key for JWT signing.
+2. Consider storing the JWT secret in environment variables, not in the code.
+3. For additional security, implement server-side verification.
+4. Use HTTPS for all communications to prevent token interception.
 
-## Can I connect a custom domain to my Lovable project?
+## Further Customization
 
-Yes, you can!
+You can customize the authentication flow by:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Adding role-based access control
+2. Implementing different access levels for different documentation sections
+3. Adding a custom login page within Docusaurus
