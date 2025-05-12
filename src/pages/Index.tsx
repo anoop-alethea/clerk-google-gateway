@@ -6,12 +6,14 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, ExternalLink } from "lucide-react";
 import { useDocusaurusAuth } from "@/utils/docusaurusAuth";
+import { useState } from "react";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
-  const { docusaurusUrl, isAuthenticated } = useDocusaurusAuth();
+  const { getDocusaurusUrl, isAuthenticated } = useDocusaurusAuth();
+  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -21,10 +23,21 @@ const Index = () => {
     toast.success("Signed out successfully");
   };
 
-  const handleDocusaurusClick = () => {
-    if (docusaurusUrl) {
-      // Open documentation in a new tab
-      window.open(docusaurusUrl, "_blank");
+  const handleDocusaurusClick = async () => {
+    if (isGeneratingToken) return;
+    
+    if (isAuthenticated) {
+      try {
+        setIsGeneratingToken(true);
+        const docusaurusUrl = await getDocusaurusUrl();
+        // Open documentation in a new tab
+        window.open(docusaurusUrl, "_blank");
+      } catch (error) {
+        console.error("Failed to generate token:", error);
+        toast.error("Failed to access documentation");
+      } finally {
+        setIsGeneratingToken(false);
+      }
     } else {
       toast.error("Authentication required to access documentation");
     }
@@ -73,10 +86,10 @@ const Index = () => {
               variant="outline" 
               className="w-full sm:w-auto"
               onClick={handleDocusaurusClick}
-              disabled={!isAuthenticated}
+              disabled={!isAuthenticated || isGeneratingToken}
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              External Docusaurus Docs
+              {isGeneratingToken ? 'Loading...' : 'External Docusaurus Docs'}
             </Button>
           </div>
         </main>

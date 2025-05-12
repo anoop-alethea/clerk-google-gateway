@@ -1,5 +1,4 @@
 
-import { createHash } from 'crypto';
 import { useAuth, useUser } from "@clerk/clerk-react";
 
 // Secret used to sign the JWT token - in production you should use a stronger secret
@@ -8,9 +7,49 @@ const TOKEN_SECRET = "your-jwt-secret-key";
 const TOKEN_EXPIRY = 3600; // 1 hour
 
 /**
+ * Generates a simple HMAC signature for JWT using Web Crypto API
+ * Note: This is a simplified implementation. In production, consider using a proper JWT library.
+ */
+async function generateSignature(input: string, secret: string): Promise<string> {
+  // Convert message and key to Uint8Array
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const keyData = encoder.encode(secret);
+  
+  // Create a key from the secret
+  const cryptoKey = await window.crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  // Sign the data
+  const signature = await window.crypto.subtle.sign(
+    'HMAC',
+    cryptoKey,
+    data
+  );
+  
+  // Convert the signature to Base64URL format
+  return arrayBufferToBase64Url(signature);
+}
+
+/**
+ * Convert ArrayBuffer to Base64URL string
+ */
+function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
+  // Convert ArrayBuffer to regular Base64
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  // Convert to Base64URL format
+  return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+/**
  * Generates a JWT token for Docusaurus authentication
  */
-export function generateDocusaurusToken(userId: string, email: string): string {
+export async function generateDocusaurusToken(userId: string, email: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   
   // Create JWT header
@@ -28,16 +67,19 @@ export function generateDocusaurusToken(userId: string, email: string): string {
   };
   
   // Encode header and payload
-  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  
-  // Create signature
-  const signature = createHash('sha256')
-    .update(`${encodedHeader}.${encodedPayload}.${TOKEN_SECRET}`)
-    .digest('base64')
+  const encodedHeader = btoa(JSON.stringify(header))
     .replace(/=/g, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_');
+    
+  const encodedPayload = btoa(JSON.stringify(payload))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+  
+  // Create signature
+  const signatureInput = `${encodedHeader}.${encodedPayload}`;
+  const signature = await generateSignature(signatureInput, TOKEN_SECRET);
   
   // Return complete JWT
   return `${encodedHeader}.${encodedPayload}.${signature}`;
@@ -60,13 +102,17 @@ export function useDocusaurusAuth() {
     };
   }
   
-  const token = generateDocusaurusToken(
-    user.id,
-    user.emailAddresses[0]?.emailAddress || ""
-  );
+  const getDocusaurusUrl = async () => {
+    const token = await generateDocusaurusToken(
+      user.id,
+      user.emailAddresses[0]?.emailAddress || ""
+    );
+    
+    return `${docusaurusBaseUrl}?token=${token}`;
+  };
   
   return {
-    docusaurusUrl: `${docusaurusBaseUrl}?token=${token}`,
+    getDocusaurusUrl,
     isAuthenticated: true
   };
 }

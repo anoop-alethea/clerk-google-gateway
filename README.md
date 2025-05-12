@@ -45,12 +45,19 @@ Add CSS for the authentication loading and error states in your Docusaurus custo
 
 If your React app and Docusaurus site are on different domains, you may need to configure CORS settings.
 
+## Production Deployment Notes
+
+1. For production deployment, update the `docusaurusBaseUrl` in `docusaurusAuth.ts` to your actual Docusaurus site URL.
+2. Use a strong random secret key for JWT signing instead of the placeholder "your-jwt-secret-key".
+3. Consider storing the JWT secret in environment variables rather than in the code.
+4. Use HTTPS for all communications to prevent token interception.
+
 ## Important Security Considerations
 
-1. In production, use a strong random secret key for JWT signing.
-2. Consider storing the JWT secret in environment variables, not in the code.
+1. This implementation uses Web Crypto API, which is compatible with modern browsers.
+2. The token is stored in localStorage, which provides persistence across page refreshes.
 3. For additional security, implement server-side verification.
-4. Use HTTPS for all communications to prevent token interception.
+4. Set appropriate token expiry times based on your security requirements.
 
 ## Further Customization
 
