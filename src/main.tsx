@@ -8,7 +8,7 @@ import './index.css'
 // In production, this should be set as an environment variable
 // Get a key from https://clerk.com
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
-  "pk_test_YWJsZS1tb29zZS04My5jbGVyay5hY2NvdW50cy5kZXYk"; // This is a placeholder key, replace with your own
+  "pk_test_c3RhYmxlLWxpemFyZC04Ny5jbGVyay5hY2NvdW50cy5kZXYk";
 
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
