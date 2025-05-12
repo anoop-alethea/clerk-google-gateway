@@ -137,16 +137,11 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
-                    <InputOTP maxLength={6} {...field} value={field.value || ""}>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
+                    <Input 
+                      placeholder="Enter 6-digit verification code" 
+                      {...field} 
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
