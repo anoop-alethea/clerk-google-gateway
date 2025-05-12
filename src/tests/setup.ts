@@ -1,6 +1,7 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import React from 'react';
 
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
@@ -28,7 +29,7 @@ vi.mock('react-router-dom', async () => {
     ...actual,
     useNavigate: () => vi.fn(),
     Navigate: ({ to }: { to: string }) => {
-      return <div>Navigate to: {to}</div>;
+      return React.createElement('div', null, `Navigate to: ${to}`);
     }
   };
 });

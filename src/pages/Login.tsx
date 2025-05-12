@@ -2,12 +2,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/infrastructure/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
-import OAuthButtons from "@/components/auth/OAuthButtons";
 
 const Login = () => {
   const { isLoading, user } = useAuth();
@@ -34,18 +32,6 @@ const Login = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* OAuth Buttons */}
-            <OAuthButtons isLoading={isLoading} />
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
             {/* Login/Signup Form */}
             {isSignup ? <SignupForm /> : <LoginForm />}
           </CardContent>

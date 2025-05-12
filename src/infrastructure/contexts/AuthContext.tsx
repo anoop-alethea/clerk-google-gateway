@@ -12,7 +12,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signInWithOAuth: (provider: 'github' | 'google') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,36 +107,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign in with OAuth provider
-  const signInWithOAuth = async (provider: 'github' | 'google') => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/sso-callback`
-        }
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      }
-    } catch (error) {
-      toast.error('Could not connect to authentication provider');
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const value = {
     session,
     user,
     isLoading,
     signIn,
     signUp,
-    signOut,
-    signInWithOAuth
+    signOut
   };
 
   return (
