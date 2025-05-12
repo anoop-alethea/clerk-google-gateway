@@ -14,7 +14,7 @@ function getEnvVariable(key: keyof Env): string {
   const value = import.meta.env[`VITE_${key}`] as string;
   
   if (!value && import.meta.env.PROD) {
-    throw new Error(`Environment variable ${key} is required in production mode`);
+    console.warn(`Environment variable ${key} is missing in production mode`);
   }
   
   return value || '';
