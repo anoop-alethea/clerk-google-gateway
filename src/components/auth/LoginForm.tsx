@@ -20,9 +20,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onForgotPassword?: () => void;
 }
 
-const LoginForm = ({ onSuccess }: LoginFormProps) => {
+const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
   const { isLoaded, signIn, setActive } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -84,7 +85,17 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Password</FormLabel>
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-xs" 
+                  type="button"
+                  onClick={onForgotPassword}
+                >
+                  Forgot password?
+                </Button>
+              </div>
               <FormControl>
                 <Input placeholder="********" type="password" {...field} autoComplete="current-password" />
               </FormControl>

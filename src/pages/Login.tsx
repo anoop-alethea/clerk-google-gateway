@@ -6,10 +6,13 @@ import { useAuth } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
+
+type AuthScreen = "login" | "signup" | "forgot-password";
 
 const Login = () => {
   const { isLoaded, isSignedIn } = useAuth();
-  const [isSignup, setIsSignup] = useState(false);
+  const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
 
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
@@ -27,44 +30,76 @@ const Login = () => {
     return <Navigate to="/" />;
   }
 
+  const renderTitle = () => {
+    switch (authScreen) {
+      case "signup":
+        return "Create Account";
+      case "forgot-password":
+        return "Reset Password";
+      default:
+        return "Sign In";
+    }
+  };
+
+  const renderDescription = () => {
+    switch (authScreen) {
+      case "signup":
+        return "Create a new account to get started";
+      case "forgot-password":
+        return "Reset your password via email";
+      default:
+        return "Enter your credentials to access your account";
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-4">
         <Card className="w-full">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">
-              {isSignup ? "Create Account" : "Sign In"}
+              {renderTitle()}
             </CardTitle>
             <CardDescription>
-              {isSignup 
-                ? "Create a new account to get started" 
-                : "Enter your credentials to access your account"}
+              {renderDescription()}
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* Login/Signup Form */}
-            {isSignup ? <SignupForm /> : <LoginForm />}
+            {/* Auth Form */}
+            {authScreen === "signup" && <SignupForm />}
+            {authScreen === "login" && (
+              <LoginForm 
+                onForgotPassword={() => setAuthScreen("forgot-password")} 
+              />
+            )}
+            {authScreen === "forgot-password" && (
+              <ForgotPasswordForm 
+                onBack={() => setAuthScreen("login")}
+              />
+            )}
           </CardContent>
           
           <CardFooter className="flex flex-col space-y-2">
-            <div className="text-center text-sm">
-              {isSignup ? (
-                <span>
-                  Already have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={() => setIsSignup(false)}>
-                    Sign in
-                  </Button>
-                </span>
-              ) : (
-                <span>
-                  Don't have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={() => setIsSignup(true)}>
-                    Sign up
-                  </Button>
-                </span>
-              )}
-            </div>
+            {authScreen !== "forgot-password" && (
+              <div className="text-center text-sm">
+                {authScreen === "signup" ? (
+                  <span>
+                    Already have an account?{" "}
+                    <Button variant="link" className="p-0" onClick={() => setAuthScreen("login")}>
+                      Sign in
+                    </Button>
+                  </span>
+                ) : (
+                  <span>
+                    Don't have an account?{" "}
+                    <Button variant="link" className="p-0" onClick={() => setAuthScreen("signup")}>
+                      Sign up
+                    </Button>
+                  </span>
+                )}
+              </div>
+            )}
             <div className="text-center text-xs text-gray-600">
               <p>Only authorized users are permitted</p>
             </div>
