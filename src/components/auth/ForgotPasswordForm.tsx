@@ -48,10 +48,13 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
     },
   });
 
+  // When email is sent, explicitly reset form values
   useEffect(() => {
     if (emailSent) {
-      console.log("Email sent state changed. Reset form values:", resetForm.getValues());
-      resetForm.reset({ code: "", password: "" });
+      console.log("Email sent state changed, resetting form values");
+      // Explicitly set the form values to empty strings
+      resetForm.setValue("code", "");
+      resetForm.setValue("password", "");
     }
   }, [emailSent, resetForm]);
 
@@ -124,8 +127,6 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
   }
 
   if (emailSent) {
-    console.log("Rendering email sent view. Current form values:", resetForm.getValues());
-    
     return (
       <div className="space-y-4">
         <div className="text-center">
@@ -141,33 +142,24 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
             <FormField
               control={resetForm.control}
               name="code"
-              render={({ field }) => {
-                console.log("Code field rendering, current value:", field.value);
-                return (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter 6-digit code" 
                       type="text"
+                      value={field.value} // Explicitly binding the value
                       onChange={(e) => {
-                        console.log("Code input onChange called with:", e.target.value);
-                        field.onChange(e.target.value);
+                        const value = e.target.value;
+                        field.onChange(value);
                       }}
-                      onFocus={(e) => {
-                        console.log("Code input focused, current value:", e.target.value);
-                        // If value is email, clear it on focus
-                        if (e.target.value.includes('@')) {
-                          e.target.value = '';
-                          field.onChange('');
-                        }
-                      }}
-                      {...field}
+                      autoComplete="off" // Disable browser autocomplete
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}}
+              )}
             />
             <FormField
               control={resetForm.control}
@@ -176,7 +168,12 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter your new password" {...field} />
+                    <Input 
+                      type="password" 
+                      placeholder="Enter your new password"
+                      autoComplete="new-password" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,7 +186,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                 type="button"
                 onClick={() => {
                   setEmailSent(false);
-                  resetForm.reset();
+                  resetForm.reset({ code: "", password: "" });
                 }}
               >
                 Back
