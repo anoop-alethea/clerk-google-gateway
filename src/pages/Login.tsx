@@ -27,7 +27,10 @@ const Login = () => {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/"
+        redirectUrlComplete: "/",
+        // Optional: You can add allowed domains if needed
+        // Uncomment and modify the line below when you want to restrict by domain
+        // additionalData: { allowed_domains: ["yourdomain.com", "anotherdomain.com"] }
       });
     } catch (error) {
       toast.error("Error signing in with Google");
@@ -100,7 +103,7 @@ const Login = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              Sign in with Google for authorized access
             </CardDescription>
           </CardHeader>
           <CardContent>
