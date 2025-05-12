@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
 interface UserProfile {
   id: string;
@@ -27,17 +28,17 @@ export const useUserProfile = () => {
       }
 
       try {
-        // Using eq with explicit type casting to handle string ID
+        // Using maybeSingle to handle potential missing profiles
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', user.id as unknown as string)
           .maybeSingle();
 
         if (error) {
           console.error('Error fetching profile:', error);
         } else if (data) {
-          setProfile(data as UserProfile);
+          setProfile(data as unknown as UserProfile);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -54,11 +55,11 @@ export const useUserProfile = () => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
-      // Using eq with explicit type casting to handle string ID
+      // Type casting to handle the TypeScript errors
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .update(updates as any)
+        .eq('id', user.id as unknown as string);
 
       if (error) {
         toast.error('Failed to update profile');
