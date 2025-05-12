@@ -1,5 +1,5 @@
 
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 interface AccessRequestData {
   fullName: string;
@@ -10,21 +10,18 @@ interface AccessRequestData {
 
 export const sendAccessRequestNotification = async (data: AccessRequestData): Promise<boolean> => {
   try {
-    // In a real implementation, this would use an API call to your backend
-    // For now, let's log the data and simulate success
-    console.log("Would send email to admin with details:", {
-      to: "anoop.appukuttan@aletheatech.com",
-      subject: "New access request",
-      body: `
-        New access request details:
-        Name: ${data.fullName}
-        Email: ${data.email}
-        Company: ${data.company}
-        Reason: ${data.reason || "Not provided"}
-      `
+    console.log("Sending access request notification:", data);
+    
+    // Call the Supabase Edge Function
+    const { error } = await supabase.functions.invoke('send-access-request', {
+      body: { data },
     });
     
-    // Simulate success
+    if (error) {
+      console.error("Error calling edge function:", error);
+      return false;
+    }
+    
     return true;
   } catch (error) {
     console.error("Error sending access request notification:", error);
