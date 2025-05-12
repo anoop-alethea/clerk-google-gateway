@@ -1,0 +1,13 @@
+
+{
+  "version": 2,
+  "projects": {
+    "domain": "packages/domain",
+    "application": "packages/application",
+    "infrastructure": "packages/infrastructure",
+    "presentation": "packages/presentation",
+    "web": "apps/web",
+    "docs": "apps/docs",
+    "utils": "packages/utils"
+  }
+}
