@@ -1,5 +1,6 @@
 
 // Import directly from the local package
-import { useDocusaurusAuth, generateDocusaurusToken } from '../hooks/useDocusaurusAuth';
+import { useDocusaurusAuth } from '../hooks/useDocusaurusAuth';
 
-export { useDocusaurusAuth, generateDocusaurusToken };
+// No longer exporting generateDocusaurusToken as we're using Clerk's JWT
+export { useDocusaurusAuth };

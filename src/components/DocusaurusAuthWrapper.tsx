@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 
 interface AuthWrapperProps {
@@ -30,6 +31,13 @@ const DocusaurusAuthWrapper = ({ children }: AuthWrapperProps) => {
       const currentTime = Math.floor(Date.now() / 1000);
       if (payload.exp < currentTime) {
         console.error('Token expired');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Check if token is from Clerk (Clerk JWT will have an issuer)
+      if (!payload.iss) {
+        console.error('Invalid token: missing issuer');
         setIsLoading(false);
         return;
       }
