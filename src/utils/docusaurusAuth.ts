@@ -1,3 +1,5 @@
 
-// This file now re-exports from the utils package
-export { useDocusaurusAuth, generateDocusaurusToken } from '@monorepo/utils';
+// Import directly from the local package
+import { useDocusaurusAuth, generateDocusaurusToken } from '../hooks/useDocusaurusAuth';
+
+export { useDocusaurusAuth, generateDocusaurusToken };

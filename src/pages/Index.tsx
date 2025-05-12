@@ -5,7 +5,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, ExternalLink } from "lucide-react";
-import { useDocusaurusAuth } from "@monorepo/utils";
+import { useDocusaurusAuth } from "@/utils/docusaurusAuth";
 import { useState } from "react";
 
 const Index = () => {
