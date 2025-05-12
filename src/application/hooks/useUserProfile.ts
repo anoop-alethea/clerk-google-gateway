@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/infrastructure/contexts/AuthContext';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -12,7 +12,8 @@ interface UserProfile {
 }
 
 export const useUserProfile = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const supabase = useSupabaseClient();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,7 +46,7 @@ export const useUserProfile = () => {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, supabase]);
 
   // Update user profile
   const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'email' | 'created_at'>>) => {

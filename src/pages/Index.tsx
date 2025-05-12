@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, ExternalLink } from "lucide-react";
-import { useDocusaurusAuth } from "@/utils/docusaurusAuth";
+import { useDocusaurusAuth } from "@/hooks/useDocusaurusAuth";
 import { useState } from "react";
+import { useSupabaseClient } from "@/hooks/useSupabaseClient";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { user, isLoaded } = useUser();
+  const supabase = useSupabaseClient(); // Use the Supabase client with Clerk integration
   const navigate = useNavigate();
   const { getDocusaurusUrl, isAuthenticated } = useDocusaurusAuth();
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
