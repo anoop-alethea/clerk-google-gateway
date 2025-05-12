@@ -1,8 +1,9 @@
 
 import { useAuth, useUser } from "@clerk/clerk-react";
+import { env } from "../config/env";
 
-// Secret used to sign the JWT token - in production you should use a stronger secret
-const TOKEN_SECRET = "your-jwt-secret-key";
+// Secret used to sign the JWT token - from environment variables
+const TOKEN_SECRET = env.DOCUSAURUS_JWT_SECRET;
 // How long the token is valid for (in seconds)
 const TOKEN_EXPIRY = 3600; // 1 hour
 
@@ -92,8 +93,8 @@ export function useDocusaurusAuth() {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
   
-  // Base URL of your Docusaurus site
-  const docusaurusBaseUrl = "https://your-docusaurus-site.vercel.app";
+  // Base URL of your Docusaurus site from environment variables
+  const docusaurusBaseUrl = env.DOCUSAURUS_SITE_URL;
   
   if (!isSignedIn || !user) {
     return {

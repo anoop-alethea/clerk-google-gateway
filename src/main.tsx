@@ -3,12 +3,15 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App.tsx'
 import './index.css'
+import { env } from './config/env'
 
-// Use a default publishable key for development
-// In production, this should be set as an environment variable
-// Get a key from https://clerk.com
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
-  "pk_test_c3RhYmxlLWxpemFyZC04Ny5jbGVyay5hY2NvdW50cy5kZXYk";
+// Use the environment variable from our config
+const PUBLISHABLE_KEY = env.CLERK_PUBLISHABLE_KEY;
+
+// Show a helpful error message if the key is missing
+if (!PUBLISHABLE_KEY) {
+  console.error('Missing Clerk publishable key. Set VITE_CLERK_PUBLISHABLE_KEY in your environment');
+}
 
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
