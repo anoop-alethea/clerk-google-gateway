@@ -1,9 +1,9 @@
 
-import { UserResource } from "@clerk/clerk-react";
+import { User as ClerkUser } from "@clerk/clerk-react";
 import { User } from "../../domain/entities/User";
 
 export class ClerkAuthAdapter {
-  static mapToUser(clerkUser: UserResource | null | undefined): User | null {
+  static mapToUser(clerkUser: ClerkUser | null | undefined): User | null {
     if (!clerkUser) return null;
 
     return {
