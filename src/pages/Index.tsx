@@ -1,8 +1,8 @@
+
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { signOut } = useAuth();
@@ -11,8 +11,6 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    // Also sign out from Supabase to keep both auth systems in sync
-    await supabase.auth.signOut();
     navigate("/login");
     toast.success("Signed out successfully");
   };
