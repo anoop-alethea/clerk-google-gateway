@@ -22,6 +22,13 @@ export const sendAccessRequestNotification = async (data: AccessRequestData): Pr
       return false;
     }
     
+    // Check for warning in the response (request saved but email failed)
+    if (responseData?.warning) {
+      console.warn("Warning from edge function:", responseData.warning);
+      // We still return true because the request was saved
+      return true;
+    }
+    
     return true;
   } catch (error) {
     console.error("Error sending access request notification:", error);

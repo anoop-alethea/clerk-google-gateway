@@ -57,22 +57,42 @@ serve(async (req: Request) => {
     // Format email content
     const emailSubject = `New access request from ${requestData.fullName}`;
     const emailContent = `
-      New access request details:
+      <h2>New access request</h2>
       
-      Name: ${requestData.fullName}
-      Email: ${requestData.email}
-      Company: ${requestData.company}
-      Reason: ${requestData.reason || "Not provided"}
+      <p><strong>Name:</strong> ${requestData.fullName}</p>
+      <p><strong>Email:</strong> ${requestData.email}</p>
+      <p><strong>Company:</strong> ${requestData.company}</p>
+      <p><strong>Reason:</strong> ${requestData.reason || "Not provided"}</p>
       
-      To approve this request, please create an account for this user in the admin dashboard.
+      <p>To approve this request, please create an account for this user in the admin dashboard.</p>
     `;
 
-    // Send notification to admin directly without using the other function
     const adminEmail = "anoop.appukuttan@aletheatech.com";
-    console.log(`Sending direct notification to ${adminEmail}`);
+    console.log(`Sending email notification to ${adminEmail}`);
     
-    // For now, we'll just simulate a successful email sending
-    // In production, you would integrate with an email provider here
+    // Send email notification to admin using our updated send-admin-email function
+    const { error: emailError } = await supabaseClient.functions.invoke('send-admin-email', {
+      body: {
+        to: adminEmail,
+        subject: emailSubject,
+        content: emailContent,
+      },
+    });
+    
+    if (emailError) {
+      console.error("Error sending admin email:", emailError);
+      // Return success anyway since we've stored the request
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          warning: "Request saved but email notification failed" 
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
     
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
