@@ -42,15 +42,15 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
       setIsLoading(true);
       
       await signIn.create({
-        strategy: "reset_password_email_code",
+        strategy: "reset_password_email_link",
         identifier: data.email,
       });
       
       setEmailSent(true);
-      toast.success("Password reset email sent");
+      toast.success("Password reset link sent");
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      toast.error(error.errors?.[0]?.message || "Error sending password reset email");
+      toast.error(error.errors?.[0]?.message || "Error sending password reset link");
     } finally {
       setIsLoading(false);
     }
