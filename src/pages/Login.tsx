@@ -2,17 +2,28 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/infrastructure/contexts/AuthContext";
+import { useAuth } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 
 const Login = () => {
-  const { isLoading, user } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
 
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // If already authenticated, redirect to home
-  if (user) {
+  if (isSignedIn) {
     return <Navigate to="/" />;
   }
 

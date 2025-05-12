@@ -7,7 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
-import { useAuth } from "@/infrastructure/contexts/AuthContext";
+import { useSignIn } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -21,7 +23,9 @@ interface LoginFormProps {
 }
 
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const { signIn, isLoading } = useAuth();
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -32,8 +36,31 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await signIn(data.email, data.password);
-    if (onSuccess) onSuccess();
+    if (!isLoaded) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      const result = await signIn.create({
+        identifier: data.email,
+        password: data.password,
+      });
+      
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        toast.success("Signed in successfully");
+        navigate("/");
+        if (onSuccess) onSuccess();
+      } else {
+        toast.error("Something went wrong during sign in");
+      }
+    } catch (error: any) {
+      toast.error(error.errors?.[0]?.message || "Error signing in");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -2,10 +2,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProtectedRoute from './ProtectedRoute';
-import { useAuth } from '@/infrastructure/contexts/AuthContext';
 
-// Mock the useAuth hook
-vi.mock('@/infrastructure/contexts/AuthContext', () => ({
+// Mock the Clerk useAuth hook
+vi.mock('@clerk/clerk-react', () => ({
   useAuth: vi.fn()
 }));
 
@@ -15,9 +14,11 @@ describe('ProtectedRoute', () => {
   });
 
   it('shows loading state when authentication is loading', () => {
-    (useAuth as any).mockReturnValue({
-      user: null,
-      isLoading: true
+    // Mock the useAuth hook to return isLoaded: false
+    const useAuthMock = vi.spyOn(require('@clerk/clerk-react'), 'useAuth');
+    useAuthMock.mockReturnValue({
+      isLoaded: false,
+      isSignedIn: false
     });
     
     render(
@@ -30,9 +31,11 @@ describe('ProtectedRoute', () => {
   });
 
   it('redirects to login when user is not authenticated', () => {
-    (useAuth as any).mockReturnValue({
-      user: null,
-      isLoading: false
+    // Mock the useAuth hook to return isSignedIn: false
+    const useAuthMock = vi.spyOn(require('@clerk/clerk-react'), 'useAuth');
+    useAuthMock.mockReturnValue({
+      isLoaded: true,
+      isSignedIn: false
     });
     
     render(
@@ -45,9 +48,11 @@ describe('ProtectedRoute', () => {
   });
 
   it('renders children when user is authenticated', () => {
-    (useAuth as any).mockReturnValue({
-      user: { id: '123', email: 'test@example.com' },
-      isLoading: false
+    // Mock the useAuth hook to return isSignedIn: true
+    const useAuthMock = vi.spyOn(require('@clerk/clerk-react'), 'useAuth');
+    useAuthMock.mockReturnValue({
+      isLoaded: true,
+      isSignedIn: true
     });
     
     render(

@@ -22,6 +22,28 @@ vi.mock('@/integrations/supabase/client', () => ({
   }
 }));
 
+// Mock Clerk
+vi.mock('@clerk/clerk-react', () => ({
+  useAuth: vi.fn().mockReturnValue({
+    isLoaded: true,
+    isSignedIn: false
+  }),
+  useSignIn: vi.fn().mockReturnValue({
+    isLoaded: true,
+    signIn: {
+      create: vi.fn()
+    },
+    setActive: vi.fn()
+  }),
+  useSignUp: vi.fn().mockReturnValue({
+    isLoaded: true,
+    signUp: {
+      create: vi.fn(),
+      prepareEmailAddressVerification: vi.fn()
+    }
+  })
+}));
+
 // Mock router
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');

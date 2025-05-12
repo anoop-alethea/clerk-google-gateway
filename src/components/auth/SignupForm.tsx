@@ -1,11 +1,13 @@
 
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/infrastructure/contexts/AuthContext";
+import { useSignUp } from "@clerk/clerk-react";
+import { toast } from "sonner";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -20,7 +22,8 @@ interface SignupFormProps {
 }
 
 const SignupForm = ({ onSuccess }: SignupFormProps) => {
-  const { signUp, isLoading } = useAuth();
+  const { isLoaded, signUp } = useSignUp();
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -32,8 +35,32 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
   });
 
   const onSubmit = async (data: SignupFormValues) => {
-    await signUp(data.email, data.password, data.fullName);
-    if (onSuccess) onSuccess();
+    if (!isLoaded) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      // Start the sign-up process
+      await signUp.create({
+        firstName: data.fullName.split(' ')[0],
+        lastName: data.fullName.split(' ').slice(1).join(' ') || '',
+        emailAddress: data.email,
+        password: data.password,
+      });
+
+      // Send email verification code
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      
+      toast.success("Check your email for a verification code");
+      
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
+      toast.error(error.errors?.[0]?.message || "Error creating account");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
