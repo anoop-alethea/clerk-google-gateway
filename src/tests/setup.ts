@@ -27,7 +27,9 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => vi.fn(),
-    Navigate: ({ to }) => <div>Navigate to: {to}</div>
+    Navigate: ({ to }: { to: string }) => {
+      return <div>Navigate to: {to}</div>;
+    }
   };
 });
 
