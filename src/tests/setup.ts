@@ -41,10 +41,6 @@ vi.mock('@clerk/clerk-react', () => ({
       create: vi.fn(),
       prepareEmailAddressVerification: vi.fn()
     }
-  }),
-  useUser: vi.fn().mockReturnValue({
-    isLoaded: true,
-    user: null
   })
 }));
 
