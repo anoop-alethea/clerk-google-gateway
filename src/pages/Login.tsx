@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,7 +139,12 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="John Doe" type="text" {...field} />
+                          <Input 
+                            placeholder="John Doe" 
+                            type="text" 
+                            {...field} 
+                            autoComplete="name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -153,7 +157,12 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="name@example.com" type="email" {...field} />
+                          <Input 
+                            placeholder="name@example.com" 
+                            type="email" 
+                            {...field} 
+                            autoComplete="email"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -166,7 +175,12 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input placeholder="********" type="password" {...field} />
+                          <Input 
+                            placeholder="********" 
+                            type="password" 
+                            {...field} 
+                            autoComplete="new-password"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -191,7 +205,7 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="name@example.com" type="email" {...field} />
+                          <Input placeholder="name@example.com" type="email" {...field} autoComplete="email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -204,7 +218,7 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input placeholder="********" type="password" {...field} />
+                          <Input placeholder="********" type="password" {...field} autoComplete="current-password" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
