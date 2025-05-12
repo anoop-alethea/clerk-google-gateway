@@ -1,5 +1,5 @@
 
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProtectedRoute from './ProtectedRoute';
 
@@ -21,13 +21,13 @@ describe('ProtectedRoute', () => {
       isSignedIn: false
     });
     
-    render(
+    const { getByText } = render(
       <ProtectedRoute>
         <div>Protected Content</div>
       </ProtectedRoute>
     );
     
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('redirects to login when user is not authenticated', () => {
@@ -38,13 +38,13 @@ describe('ProtectedRoute', () => {
       isSignedIn: false
     });
     
-    render(
+    const { getByText } = render(
       <ProtectedRoute>
         <div>Protected Content</div>
       </ProtectedRoute>
     );
     
-    expect(screen.getByText(/navigate to: \/login/i)).toBeInTheDocument();
+    expect(getByText(/navigate to: \/login/i)).toBeInTheDocument();
   });
 
   it('renders children when user is authenticated', () => {
@@ -55,12 +55,12 @@ describe('ProtectedRoute', () => {
       isSignedIn: true
     });
     
-    render(
+    const { getByText } = render(
       <ProtectedRoute>
         <div>Protected Content</div>
       </ProtectedRoute>
     );
     
-    expect(screen.getByText('Protected Content')).toBeInTheDocument();
+    expect(getByText('Protected Content')).toBeInTheDocument();
   });
 });
