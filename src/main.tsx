@@ -19,17 +19,17 @@ if (!PUBLISHABLE_KEY) {
       root.innerHTML = `
         <div style="padding: 2rem; font-family: system-ui; max-width: 600px; margin: 0 auto; line-height: 1.5;">
           <h1 style="color: #e11d48;">Missing Clerk API Key</h1>
-          <p>You need to provide a Clerk publishable key to use authentication features.</p>
+          <p>This application requires a valid Clerk publishable key to function properly.</p>
           <h2>How to fix this:</h2>
           <ol>
             <li>Create a <code>.env</code> file in the project root if it doesn't exist</li>
             <li>Add the following line to your .env file:<br>
-              <code>VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key</code>
+              <code>VITE_CLERK_PUBLISHABLE_KEY=pk_test_YOUR_ACTUAL_KEY</code>
             </li>
             <li>Get your Clerk publishable key from the <a href="https://dashboard.clerk.com/last-active?path=api-keys" target="_blank">Clerk dashboard</a></li>
             <li>Restart your development server</li>
           </ol>
-          <p>See <a href="https://docs.lovable.dev/user-guides/environment-variables" target="_blank">Lovable documentation</a> for more details on environment variables.</p>
+          <p>For testing purposes, you can create a free Clerk account at <a href="https://clerk.com" target="_blank">https://clerk.com</a></p>
         </div>
       `;
     }
@@ -37,9 +37,20 @@ if (!PUBLISHABLE_KEY) {
   }
 }
 
+// Provide a fallback when key is invalid for testing (empty string)
+const actualKey = PUBLISHABLE_KEY.trim() ? PUBLISHABLE_KEY : null;
+
 // Create the React root and render the app with ClerkProvider
 createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <App />
-  </ClerkProvider>
+  actualKey ? (
+    <ClerkProvider publishableKey={actualKey}>
+      <App />
+    </ClerkProvider>
+  ) : (
+    <div style={{padding: '2rem', fontFamily: 'system-ui', maxWidth: '600px', margin: '0 auto'}}>
+      <h1>Authentication Not Configured</h1>
+      <p>Please add a valid Clerk publishable key to continue.</p>
+      <p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> in your <code>.env</code> file.</p>
+    </div>
+  )
 );
