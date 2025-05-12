@@ -70,18 +70,36 @@ serve(async (req: Request) => {
     const adminEmail = "anoop.appukuttan@aletheatech.com";
     console.log(`Sending email notification to ${adminEmail}`);
     
-    // Send email notification to admin using our updated send-admin-email function
-    const { error: emailError } = await supabaseClient.functions.invoke('send-admin-email', {
-      body: {
-        to: adminEmail,
-        subject: emailSubject,
-        content: emailContent,
-      },
-    });
-    
-    if (emailError) {
-      console.error("Error sending admin email:", emailError);
-      // Return success anyway since we've stored the request
+    // Call the Supabase Edge Function
+    try {
+      const { error: emailError } = await supabaseClient.functions.invoke('send-admin-email', {
+        body: {
+          to: adminEmail,
+          subject: emailSubject,
+          content: emailContent,
+        },
+      });
+      
+      if (emailError) {
+        console.error("Error sending admin email:", emailError);
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            warning: "Request saved but email notification failed" 
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (emailError) {
+      console.error("Exception sending admin email:", emailError);
       return new Response(
         JSON.stringify({ 
           success: true,
@@ -93,11 +111,6 @@ serve(async (req: Request) => {
         }
       );
     }
-    
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   } catch (error) {
     console.error("Error processing access request:", error);
     

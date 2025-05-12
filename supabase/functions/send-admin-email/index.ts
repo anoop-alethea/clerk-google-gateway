@@ -3,6 +3,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
+
+// Make sure we have the API key before creating the Resend client
+if (!resendApiKey) {
+  console.error("RESEND_API_KEY environment variable is not set");
+}
+
 const resend = new Resend(resendApiKey);
 
 const corsHeaders = {
@@ -23,10 +29,17 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Log API key status (don't log the actual key)
+    console.log("Resend API key status:", resendApiKey ? "Present" : "Missing");
+    
     const { to, subject, content }: EmailRequest = await req.json();
     
     // Log the email request for troubleshooting
     console.log("Sending email to admin using Resend:", { to, subject });
+    
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY environment variable is not set");
+    }
     
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
