@@ -1,5 +1,5 @@
 
-import { User } from "../../domain/entities/User";
+import { User } from "@supabase/supabase-js";
 import { AuthorizationService } from "../../domain/services/AuthorizationService";
 
 export class AuthUseCase {
@@ -14,7 +14,7 @@ export class AuthUseCase {
       return { authorized: false, reason: "User not authenticated" };
     }
 
-    const isAuthorized = this.authorizationService.isAuthorized(user.email);
+    const isAuthorized = this.authorizationService.isAuthorized(user.email || '');
     
     if (!isAuthorized) {
       return { 

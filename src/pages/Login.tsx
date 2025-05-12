@@ -1,31 +1,37 @@
 
-import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { LogIn, Github, Mail } from "lucide-react";
-import { POST_LOGIN_REDIRECT_URL } from "../infrastructure/config/authConfig";
+import { LogIn, Github } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/infrastructure/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Full name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Login = () => {
-  const { isLoaded: isSignInLoaded, signIn } = useSignIn();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, signInWithOAuth, isLoading, user } = useAuth();
+  const [isSignup, setIsSignup] = useState(false);
 
-  const form = useForm<LoginFormValues>({
+  const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -33,56 +39,30 @@ const Login = () => {
     },
   });
 
-  const handleOAuthSignIn = async (strategy: "oauth_github" | "oauth_google") => {
-    if (!isSignInLoaded) return;
-    
-    try {
-      setIsLoading(true);
-      await signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: POST_LOGIN_REDIRECT_URL
-      });
-    } catch (error) {
-      toast.error("Could not connect to authentication provider");
-      console.error(error);
-      setIsLoading(false);
-    }
+  const signupForm = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleOAuthSignIn = async (provider: 'github' | 'google') => {
+    await signInWithOAuth(provider);
   };
 
-  const onSubmit = async (data: LoginFormValues) => {
-    if (!isSignInLoaded) return;
-
-    try {
-      setIsLoading(true);
-      const result = await signIn.create({
-        identifier: data.email,
-        password: data.password,
-      });
-
-      if (result.status === "complete") {
-        // Set active session
-        const { createdSessionId } = result;
-        if (createdSessionId) {
-          await signIn.create.setActive({ session: createdSessionId });
-          toast.success("Signed in successfully!");
-          
-          // Redirect to external application after successful login
-          window.location.href = POST_LOGIN_REDIRECT_URL;
-        }
-      } else {
-        toast.error("There was a problem signing in");
-      }
-    } catch (error) {
-      toast.error("Invalid email or password");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const onLoginSubmit = async (data: LoginFormValues) => {
+    await signIn(data.email, data.password);
   };
 
-  if (!isSignInLoaded) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  const onSignupSubmit = async (data: SignupFormValues) => {
+    await signUp(data.email, data.password, data.fullName);
+  };
+
+  // If already authenticated, redirect to home
+  if (user) {
+    return <Navigate to="/" />;
   }
 
   return (
@@ -90,9 +70,13 @@ const Login = () => {
       <div className="w-full max-w-md p-4">
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {isSignup ? "Create Account" : "Sign In"}
+            </CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              {isSignup 
+                ? "Create a new account to get started" 
+                : "Enter your credentials to access your account"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -101,7 +85,7 @@ const Login = () => {
               <Button 
                 variant="outline" 
                 className="w-full flex items-center justify-center gap-2"
-                onClick={() => handleOAuthSignIn("oauth_github")}
+                onClick={() => handleOAuthSignIn("github")}
                 disabled={isLoading}
               >
                 <Github className="w-4 h-4" />
@@ -110,7 +94,7 @@ const Login = () => {
               <Button 
                 variant="outline" 
                 className="w-full flex items-center justify-center gap-2"
-                onClick={() => handleOAuthSignIn("oauth_google")}
+                onClick={() => handleOAuthSignIn("google")}
                 disabled={isLoading}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -145,48 +129,120 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Email/Password Form */}
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="name@example.com" type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input placeholder="********" type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  className="w-full flex items-center justify-center gap-2" 
-                  type="submit" 
-                  disabled={isLoading}
-                >
-                  <Mail className="w-4 h-4" />
-                  {isLoading ? "Signing in..." : "Sign in with Email"}
-                </Button>
-              </form>
-            </Form>
+            {/* Login/Signup Form */}
+            {isSignup ? (
+              <Form {...signupForm}>
+                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
+                  <FormField
+                    control={signupForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" type="text" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={signupForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="name@example.com" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={signupForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input placeholder="********" type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button 
+                    className="w-full" 
+                    type="submit" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating account..." : "Create account"}
+                  </Button>
+                </form>
+              </Form>
+            ) : (
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="name@example.com" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input placeholder="********" type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button 
+                    className="w-full flex items-center justify-center gap-2" 
+                    type="submit" 
+                    disabled={isLoading}
+                  >
+                    <LogIn className="w-4 h-4" />
+                    {isLoading ? "Signing in..." : "Sign in"}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </CardContent>
-          <CardFooter className="flex justify-center text-sm text-gray-600">
-            <p>Only authorized users are permitted</p>
+          <CardFooter className="flex flex-col space-y-2">
+            <div className="text-center text-sm">
+              {isSignup ? (
+                <span>
+                  Already have an account?{" "}
+                  <Button variant="link" className="p-0" onClick={() => setIsSignup(false)}>
+                    Sign in
+                  </Button>
+                </span>
+              ) : (
+                <span>
+                  Don't have an account?{" "}
+                  <Button variant="link" className="p-0" onClick={() => setIsSignup(true)}>
+                    Sign up
+                  </Button>
+                </span>
+              )}
+            </div>
+            <div className="text-center text-xs text-gray-600">
+              <p>Only authorized users are permitted</p>
+            </div>
           </CardFooter>
         </Card>
       </div>

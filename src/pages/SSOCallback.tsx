@@ -1,39 +1,51 @@
 
-import { useSignIn, useClerk } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { POST_LOGIN_REDIRECT_URL } from "../infrastructure/config/authConfig";
 
 const SSOCallback = () => {
-  const { signIn, isLoaded: isSignInLoaded } = useSignIn();
-  const { setActive } = useClerk();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isSignInLoaded) return;
-
-    // Handle the OAuth callback
-    const handleCallback = async () => {
+    const handleAuthCallback = async () => {
       try {
-        // Complete the OAuth flow
-        const result = await signIn?.attemptFirstFactor({
-          strategy: "oauth_callback",
-          redirectUrl: '/sso-callback',
-        });
+        // Get auth code from URL
+        const hash = window.location.hash;
+        const query = window.location.search;
 
-        if (result?.status === "complete") {
-          // Set the active session
-          if (result.createdSessionId) {
-            await setActive({ session: result.createdSessionId });
+        if (hash || query) {
+          // Handle OAuth callback to get the session
+          const { error } = await supabase.auth.exchangeCodeForSession(
+            hash || query
+          );
+
+          if (error) {
+            console.error("OAuth callback error:", error);
+            toast.error("Authentication failed. Please try again.");
+            navigate("/login");
+            return;
+          }
+
+          // Check if we got a session
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
             toast.success("Successfully signed in!");
             
-            // Redirect to the configured URL
-            window.location.href = POST_LOGIN_REDIRECT_URL;
+            // Redirect to the configured URL if external, or to our app's home
+            if (POST_LOGIN_REDIRECT_URL.startsWith('http')) {
+              window.location.href = POST_LOGIN_REDIRECT_URL;
+            } else {
+              navigate(POST_LOGIN_REDIRECT_URL);
+            }
+          } else {
+            // If no session, redirect to login
+            navigate("/login");
           }
         } else {
-          console.error("OAuth callback failed:", result);
-          toast.error("Authentication failed. Please try again.");
+          // No auth parameters found in URL
           navigate("/login");
         }
       } catch (error) {
@@ -43,8 +55,8 @@ const SSOCallback = () => {
       }
     };
 
-    handleCallback();
-  }, [isSignInLoaded, signIn, setActive, navigate]);
+    handleAuthCallback();
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">

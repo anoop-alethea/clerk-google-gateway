@@ -1,5 +1,5 @@
 
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/infrastructure/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
@@ -7,13 +7,13 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!isLoaded) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  if (!isSignedIn) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
