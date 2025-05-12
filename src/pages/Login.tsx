@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { LogIn } from "lucide-react";
+import { POST_LOGIN_REDIRECT_URL } from "../infrastructure/config/authConfig";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,8 +43,15 @@ const Login = () => {
       });
 
       if (result.status === "complete") {
-        await signIn.setActive({ session: result.createdSessionId });
-        toast.success("Signed in successfully!");
+        // Set active session
+        const { createdSessionId } = result;
+        if (createdSessionId) {
+          await signIn.setActive({ session: createdSessionId });
+          toast.success("Signed in successfully!");
+          
+          // Redirect to external application after successful login
+          window.location.href = POST_LOGIN_REDIRECT_URL;
+        }
       } else {
         toast.error("There was a problem signing in");
       }
