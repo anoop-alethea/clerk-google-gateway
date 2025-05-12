@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +48,13 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
     },
   });
 
+  useEffect(() => {
+    if (emailSent) {
+      console.log("Email sent state changed. Reset form values:", resetForm.getValues());
+      resetForm.reset({ code: "", password: "" });
+    }
+  }, [emailSent, resetForm]);
+
   const onSubmitEmail = async (data: ForgotPasswordFormValues) => {
     if (!isLoaded) {
       return;
@@ -72,6 +79,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
   };
 
   const onSubmitReset = async (data: ResetPasswordFormValues) => {
+    console.log("Submitting reset form with data:", data);
     if (!isLoaded) {
       return;
     }
@@ -116,6 +124,8 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
   }
 
   if (emailSent) {
+    console.log("Rendering email sent view. Current form values:", resetForm.getValues());
+    
     return (
       <div className="space-y-4">
         <div className="text-center">
@@ -131,20 +141,33 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
             <FormField
               control={resetForm.control}
               name="code"
-              render={({ field }) => (
+              render={({ field }) => {
+                console.log("Code field rendering, current value:", field.value);
+                return (
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter 6-digit code" 
-                      {...field} 
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      type="text"
+                      onChange={(e) => {
+                        console.log("Code input onChange called with:", e.target.value);
+                        field.onChange(e.target.value);
+                      }}
+                      onFocus={(e) => {
+                        console.log("Code input focused, current value:", e.target.value);
+                        // If value is email, clear it on focus
+                        if (e.target.value.includes('@')) {
+                          e.target.value = '';
+                          field.onChange('');
+                        }
+                      }}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
+              )}}
             />
             <FormField
               control={resetForm.control}
