@@ -124,7 +124,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
           <Mail className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="font-medium text-lg">Check your email</h3>
           <p className="text-sm text-muted-foreground mt-2 mb-4">
-            We've sent a verification code to {userEmail}. Enter the code below to reset your password.
+            We've sent a verification code to <strong>{userEmail}</strong>. Enter the code below to reset your password.
           </p>
         </div>
 
@@ -137,7 +137,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
-                    <InputOTP maxLength={6} {...field}>
+                    <InputOTP maxLength={6} {...field} value={field.value || ""}>
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
@@ -170,9 +170,12 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                 className="w-full" 
                 variant="outline" 
                 type="button"
-                onClick={onBack}
+                onClick={() => {
+                  setEmailSent(false);
+                  resetForm.reset();
+                }}
               >
-                Cancel
+                Back
               </Button>
               <Button 
                 className="w-full" 
