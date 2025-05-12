@@ -8,7 +8,7 @@ export function useSupabaseClient() {
   
   // Create a function to get the Clerk token for Supabase
   const getSupabaseToken = useCallback(async () => {
-    return getToken({ template: "supabase" });
+    return await getToken({ template: "supabase" });
   }, [getToken]);
   
   // Create a Supabase client that uses the Clerk session token
