@@ -17,11 +17,12 @@ function getEnvVariable(key: keyof Env): string {
     throw new Error(`Environment variable ${key} is required in production mode`);
   }
   
-  return value;
+  return value || '';
 }
 
 // Default values for development
 const defaults: Partial<Env> = {
+  // For Clerk, we don't provide a default key as it should be explicitly set
   DOCUSAURUS_SITE_URL: "https://your-docusaurus-site.vercel.app",
   // Note: In production, use a properly generated secure secret
   DOCUSAURUS_JWT_SECRET: "your-jwt-secret-key"
