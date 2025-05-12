@@ -6,15 +6,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { useSignIn } from "@clerk/clerk-react";
 import { toast } from "sonner";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 
+const resetPasswordSchema = z.object({
+  code: z.string().min(6, "Please enter the 6-digit code"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 interface ForgotPasswordFormProps {
   onBack: () => void;
@@ -25,21 +32,32 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
   const { isLoaded, signIn } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [resetCompleted, setResetCompleted] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   
-  const form = useForm<ForgotPasswordFormValues>({
+  const emailForm = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
     },
   });
 
-  const onSubmit = async (data: ForgotPasswordFormValues) => {
+  const resetForm = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      code: "",
+      password: "",
+    },
+  });
+
+  const onSubmitEmail = async (data: ForgotPasswordFormValues) => {
     if (!isLoaded) {
       return;
     }
     
     try {
       setIsLoading(true);
+      setUserEmail(data.email);
       
       await signIn.create({
         strategy: "reset_password_email_code",
@@ -48,7 +66,6 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
       
       setEmailSent(true);
       toast.success("Password reset email sent");
-      if (onSuccess) onSuccess();
     } catch (error: any) {
       toast.error(error.errors?.[0]?.message || "Error sending password reset email");
     } finally {
@@ -56,23 +73,117 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
     }
   };
 
+  const onSubmitReset = async (data: ResetPasswordFormValues) => {
+    if (!isLoaded) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      await signIn.attemptFirstFactor({
+        strategy: "reset_password_email_code",
+        code: data.code,
+        password: data.password,
+      });
+      
+      setResetCompleted(true);
+      toast.success("Password has been reset successfully");
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
+      toast.error(error.errors?.[0]?.message || "Error resetting password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (resetCompleted) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <Lock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="font-medium text-lg">Password reset complete</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Your password has been reset successfully.
+          </p>
+        </div>
+        <Button 
+          className="w-full" 
+          onClick={onBack}
+        >
+          Back to login
+        </Button>
+      </div>
+    );
+  }
+
   if (emailSent) {
     return (
       <div className="space-y-4">
         <div className="text-center">
           <Mail className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="font-medium text-lg">Check your email</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            We've sent you a password reset link. Please check your inbox.
+          <p className="text-sm text-muted-foreground mt-2 mb-4">
+            We've sent a verification code to {userEmail}. Enter the code below to reset your password.
           </p>
         </div>
-        <Button 
-          className="w-full" 
-          variant="outline" 
-          onClick={onBack}
-        >
-          Back to login
-        </Button>
+
+        <Form {...resetForm}>
+          <form onSubmit={resetForm.handleSubmit(onSubmitReset)} className="space-y-4">
+            <FormField
+              control={resetForm.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Verification Code</FormLabel>
+                  <FormControl>
+                    <InputOTP maxLength={6} {...field}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={resetForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter your new password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex gap-2">
+              <Button 
+                className="w-full" 
+                variant="outline" 
+                type="button"
+                onClick={onBack}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="w-full" 
+                type="submit" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Resetting..." : "Reset Password"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
     );
   }
@@ -82,14 +193,14 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
       <div className="space-y-2">
         <h3 className="font-medium text-lg">Reset your password</h3>
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we'll send you a verification code to reset your password.
         </p>
       </div>
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <Form {...emailForm}>
+        <form onSubmit={emailForm.handleSubmit(onSubmitEmail)} className="space-y-4">
           <FormField
-            control={form.control}
+            control={emailForm.control}
             name="email"
             render={({ field }) => (
               <FormItem>
@@ -115,7 +226,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
               type="submit" 
               disabled={isLoading}
             >
-              {isLoading ? "Sending..." : "Send Reset Link"}
+              {isLoading ? "Sending..." : "Send Reset Code"}
             </Button>
           </div>
         </form>
