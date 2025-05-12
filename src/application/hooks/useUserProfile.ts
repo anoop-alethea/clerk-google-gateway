@@ -27,11 +27,12 @@ export const useUserProfile = () => {
       }
 
       try {
+        // Using eq with explicit type casting to handle string ID
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id as string)
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching profile:', error);
@@ -53,10 +54,11 @@ export const useUserProfile = () => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
+      // Using eq with explicit type casting to handle string ID
       const { error } = await supabase
         .from('profiles')
-        .update(updates as any)
-        .eq('id', user.id as string);
+        .update(updates)
+        .eq('id', user.id);
 
       if (error) {
         toast.error('Failed to update profile');
