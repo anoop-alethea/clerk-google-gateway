@@ -21,9 +21,9 @@ export function useDocusaurusAuth() {
   
   const getDocusaurusUrl = async () => {
     // Use Clerk's getToken method to get a JWT using the "WiCheckDocumentation" template
-    // Make sure this template is set up in your Clerk dashboard
     const token = await getToken({ template: "WiCheckDocumentation" });
     
+    if (!token) return docusaurusBaseUrl;
     return `${docusaurusBaseUrl}?token=${token}`;
   };
   

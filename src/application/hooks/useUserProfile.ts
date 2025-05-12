@@ -32,13 +32,13 @@ export const useUserProfile = () => {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id as unknown as string)
+          .eq('id', user.id)
           .maybeSingle();
 
         if (error) {
           console.error('Error fetching profile:', error);
         } else if (data) {
-          setProfile(data as unknown as UserProfile);
+          setProfile(data as UserProfile);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -55,11 +55,10 @@ export const useUserProfile = () => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
-      // Type casting to handle the TypeScript errors
       const { error } = await supabase
         .from('profiles')
-        .update(updates as any)
-        .eq('id', user.id as unknown as string);
+        .update(updates)
+        .eq('id', user.id);
 
       if (error) {
         toast.error('Failed to update profile');
