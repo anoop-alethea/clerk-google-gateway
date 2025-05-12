@@ -100,9 +100,6 @@ const Login = () => {
                 )}
               </div>
             )}
-            <div className="text-center text-xs text-gray-600">
-              <p>Only authorized users are permitted</p>
-            </div>
           </CardFooter>
         </Card>
       </div>

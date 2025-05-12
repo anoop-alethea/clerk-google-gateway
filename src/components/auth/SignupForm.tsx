@@ -69,7 +69,7 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
       <div className="space-y-4 text-center">
         <h3 className="font-medium text-lg">Request Submitted</h3>
         <p className="text-sm text-muted-foreground">
-          Your request has been sent. Our team will reach out to you at the earliest.
+          Our team will reach out to you at the earliest.
         </p>
         <p className="text-xs text-muted-foreground">
           Please check your email for further instructions.
