@@ -1,20 +1,50 @@
 
+import { useSignIn, useClerk } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { POST_LOGIN_REDIRECT_URL } from "../infrastructure/config/authConfig";
 
 const SSOCallback = () => {
+  const { signIn, isLoaded: isSignInLoaded } = useSignIn();
+  const { setActive } = useClerk();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Add a small delay to allow Clerk to process the authentication
-    const timer = setTimeout(() => {
-      navigate("/");
-      toast.success("Successfully signed in!");
-    }, 2000);
+    if (!isSignInLoaded) return;
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    // Handle the OAuth callback
+    const handleCallback = async () => {
+      try {
+        // Complete the OAuth flow
+        const result = await signIn?.attemptFirstFactor({
+          strategy: "oauth_callback",
+          redirectUrl: '/sso-callback',
+        });
+
+        if (result?.status === "complete") {
+          // Set the active session
+          if (result.createdSessionId) {
+            await setActive({ session: result.createdSessionId });
+            toast.success("Successfully signed in!");
+            
+            // Redirect to the configured URL
+            window.location.href = POST_LOGIN_REDIRECT_URL;
+          }
+        } else {
+          console.error("OAuth callback failed:", result);
+          toast.error("Authentication failed. Please try again.");
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Error during OAuth callback:", error);
+        toast.error("Authentication error. Please try again.");
+        navigate("/login");
+      }
+    };
+
+    handleCallback();
+  }, [isSignInLoaded, signIn, setActive, navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
