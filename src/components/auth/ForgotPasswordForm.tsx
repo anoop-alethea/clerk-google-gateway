@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -137,8 +136,9 @@ const ForgotPasswordForm = ({ onBack, onSuccess }: ForgotPasswordFormProps) => {
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Enter 6-digit verification code" 
+                      placeholder="Enter 6-digit code" 
                       {...field} 
+                      value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
                     />
                   </FormControl>
