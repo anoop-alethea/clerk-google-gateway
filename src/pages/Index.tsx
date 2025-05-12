@@ -1,8 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { BookOpen } from "lucide-react";
 
 const Index = () => {
   const { signOut } = useAuth();
@@ -46,6 +48,15 @@ const Index = () => {
               <p><span className="font-semibold">Email:</span> {user?.emailAddresses[0]?.emailAddress}</p>
               <p><span className="font-semibold">Name:</span> {user?.fullName || 'Not provided'}</p>
             </div>
+          </div>
+          
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <Link to="/documentation">
+              <Button variant="default" className="w-full sm:w-auto">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Access Documentation
+              </Button>
+            </Link>
           </div>
         </main>
       </div>

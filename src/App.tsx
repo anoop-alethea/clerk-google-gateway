@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SSOCallback from "./pages/SSOCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/documentation" 
+            element={
+              <ProtectedRoute>
+                <Documentation />
               </ProtectedRoute>
             } 
           />
