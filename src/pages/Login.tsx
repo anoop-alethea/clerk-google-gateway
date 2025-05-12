@@ -8,7 +8,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
-type AuthScreen = "login" | "signup" | "forgot-password";
+type AuthScreen = "login" | "request-access" | "forgot-password";
 
 const Login = () => {
   const { isLoaded, isSignedIn } = useAuth();
@@ -32,8 +32,8 @@ const Login = () => {
 
   const renderTitle = () => {
     switch (authScreen) {
-      case "signup":
-        return "Create Account";
+      case "request-access":
+        return "Request Access";
       case "forgot-password":
         return "Reset Password";
       default:
@@ -43,8 +43,8 @@ const Login = () => {
 
   const renderDescription = () => {
     switch (authScreen) {
-      case "signup":
-        return "Create a new account to get started";
+      case "request-access":
+        return "Submit your details to request access to the platform";
       case "forgot-password":
         return "Reset your password via email";
       default:
@@ -67,7 +67,7 @@ const Login = () => {
           
           <CardContent className="space-y-6">
             {/* Auth Form */}
-            {authScreen === "signup" && <SignupForm />}
+            {authScreen === "request-access" && <SignupForm />}
             {authScreen === "login" && (
               <LoginForm 
                 onForgotPassword={() => setAuthScreen("forgot-password")} 
@@ -83,7 +83,7 @@ const Login = () => {
           <CardFooter className="flex flex-col space-y-2">
             {authScreen !== "forgot-password" && (
               <div className="text-center text-sm">
-                {authScreen === "signup" ? (
+                {authScreen === "request-access" ? (
                   <span>
                     Already have an account?{" "}
                     <Button variant="link" className="p-0" onClick={() => setAuthScreen("login")}>
@@ -92,9 +92,9 @@ const Login = () => {
                   </span>
                 ) : (
                   <span>
-                    Don't have an account?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setAuthScreen("signup")}>
-                      Sign up
+                    Need an account?{" "}
+                    <Button variant="link" className="p-0" onClick={() => setAuthScreen("request-access")}>
+                      Request access
                     </Button>
                   </span>
                 )}
