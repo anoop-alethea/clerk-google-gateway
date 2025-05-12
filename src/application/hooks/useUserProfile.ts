@@ -30,13 +30,13 @@ export const useUserProfile = () => {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', user.id as string)
           .single();
 
         if (error) {
           console.error('Error fetching profile:', error);
-        } else {
-          setProfile(data);
+        } else if (data) {
+          setProfile(data as UserProfile);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -55,8 +55,8 @@ export const useUserProfile = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .update(updates as any)
+        .eq('id', user.id as string);
 
       if (error) {
         toast.error('Failed to update profile');
