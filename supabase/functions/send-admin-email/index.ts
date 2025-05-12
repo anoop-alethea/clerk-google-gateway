@@ -2,14 +2,18 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
+// Get the API key from environment variables
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-// Make sure we have the API key before creating the Resend client
+// Log API key status for debugging (without exposing the actual key)
+console.log("RESEND_API_KEY status:", resendApiKey ? "Found" : "Missing");
+
 if (!resendApiKey) {
-  console.error("RESEND_API_KEY environment variable is not set");
+  console.error("RESEND_API_KEY environment variable is not set or empty");
 }
 
-const resend = new Resend(resendApiKey);
+// Initialize Resend only if we have an API key
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,17 +33,25 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Log API key status (don't log the actual key)
-    console.log("Resend API key status:", resendApiKey ? "Present" : "Missing");
-    
+    // Check if Resend client is initialized
+    if (!resend) {
+      console.error("Cannot send email: Resend client is not initialized due to missing API key");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Email service is not properly configured. Please contact an administrator."
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { to, subject, content }: EmailRequest = await req.json();
     
-    // Log the email request for troubleshooting
-    console.log("Sending email to admin using Resend:", { to, subject });
-    
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY environment variable is not set");
-    }
+    // Log the email request details
+    console.log("Attempting to send email:", { to, subject });
     
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
@@ -50,7 +62,7 @@ serve(async (req: Request) => {
     });
     
     if (error) {
-      console.error("Error sending email:", error);
+      console.error("Error from Resend API:", error);
       throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
     }
     
@@ -61,7 +73,7 @@ serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error sending admin email:", error);
+    console.error("Error in send-admin-email function:", error);
     
     return new Response(
       JSON.stringify({ 
