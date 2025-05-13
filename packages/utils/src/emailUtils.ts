@@ -60,14 +60,48 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
   }
 
   try {
-    // In a real application, you would send an email to administrators
-    // This is a mock implementation that always succeeds
+    // Define the admin email
+    const adminEmail = "anoop.appukuttan@aletheatech.com";
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // The Resend API key
+    const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
     
-    // For development/demo purposes, we're just returning success
-    // In production, this would connect to an email service API
+    // Prepare the email content
+    const emailContent = {
+      from: "Access Requests <onboarding@resend.dev>",
+      to: adminEmail,
+      subject: `New Access Request from ${data.fullName}`,
+      html: `
+        <h1>New Access Request Received</h1>
+        <p>A new user has requested access to the platform:</p>
+        <ul>
+          <li><strong>Name:</strong> ${data.fullName}</li>
+          <li><strong>Email:</strong> ${data.email}</li>
+          <li><strong>Company:</strong> ${data.company}</li>
+          ${data.reason ? `<li><strong>Reason:</strong> ${data.reason}</li>` : ''}
+        </ul>
+        <p>Please review this request at your earliest convenience.</p>
+      `
+    };
+    
+    // Send the email via Resend API
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(emailContent)
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('Error sending email:', result);
+      return false;
+    }
+    
+    console.log('Email sent successfully:', result);
     return true;
   } catch (error) {
     console.error('Failed to send access request notification:', error);
