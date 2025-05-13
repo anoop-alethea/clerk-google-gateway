@@ -45,6 +45,15 @@ interface AccessRequestData {
 }
 
 /**
+ * Generates a unique idempotency key for email requests
+ * @returns Unique string to use as idempotency key
+ */
+function generateIdempotencyKey(data: AccessRequestData): string {
+  const timestamp = new Date().getTime();
+  return `access_request_${data.email}_${timestamp}`;
+}
+
+/**
  * Sends a notification to administrators about new access requests
  * @param data Access request data including user information
  * @returns Promise resolving to a boolean indicating success
@@ -65,6 +74,9 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
     
     // The Resend API key
     const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
+    
+    // Generate a unique idempotency key to prevent duplicate emails
+    const idempotencyKey = generateIdempotencyKey(data);
     
     // Prepare the email content with improved HTML formatting
     const emailContent = {
@@ -98,7 +110,26 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
             </div>
           </body>
         </html>
-      `
+      `,
+      // Adding text version as a fallback for email clients that don't support HTML
+      text: `
+New Access Request Received
+
+A new user has requested access to the platform:
+
+Name: ${data.fullName}
+Email: ${data.email}
+Company: ${data.company}
+${data.reason ? `Reason: ${data.reason}` : ''}
+
+Please review this request at your earliest convenience.
+      `,
+      tags: [
+        {
+          name: "request_type",
+          value: "access_request"
+        }
+      ]
     };
     
     // Add additional debugging
@@ -110,7 +141,8 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey
       },
       body: JSON.stringify(emailContent)
     });
