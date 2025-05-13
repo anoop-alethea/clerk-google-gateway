@@ -60,31 +60,52 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
   }
 
   try {
-    // Define the admin email
+    // Define the admin email - Make sure this is correct
     const adminEmail = "anoop.appukuttan@aletheatech.com";
     
     // The Resend API key
     const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
     
-    // Prepare the email content
+    // Prepare the email content with improved HTML formatting
     const emailContent = {
       from: "Access Requests <onboarding@resend.dev>",
       to: adminEmail,
       subject: `New Access Request from ${data.fullName}`,
       html: `
-        <h1>New Access Request Received</h1>
-        <p>A new user has requested access to the platform:</p>
-        <ul>
-          <li><strong>Name:</strong> ${data.fullName}</li>
-          <li><strong>Email:</strong> ${data.email}</li>
-          <li><strong>Company:</strong> ${data.company}</li>
-          ${data.reason ? `<li><strong>Reason:</strong> ${data.reason}</li>` : ''}
-        </ul>
-        <p>Please review this request at your earliest convenience.</p>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+              h1 { color: #4a5568; }
+              ul { padding-left: 20px; }
+              li { margin-bottom: 8px; }
+              .highlight { font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>New Access Request Received</h1>
+              <p>A new user has requested access to the platform:</p>
+              <ul>
+                <li><span class="highlight">Name:</span> ${data.fullName}</li>
+                <li><span class="highlight">Email:</span> ${data.email}</li>
+                <li><span class="highlight">Company:</span> ${data.company}</li>
+                ${data.reason ? `<li><span class="highlight">Reason:</span> ${data.reason}</li>` : ''}
+              </ul>
+              <p>Please review this request at your earliest convenience.</p>
+            </div>
+          </body>
+        </html>
       `
     };
     
-    // Send the email via Resend API
+    // Add additional debugging
+    console.log('Sending email to:', adminEmail);
+    console.log('Using Resend API key:', `${RESEND_API_KEY.substring(0, 5)}...`);
+    
+    // Send the email via Resend API with improved error handling
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -94,10 +115,21 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
       body: JSON.stringify(emailContent)
     });
     
-    const result = await response.json();
+    // Get response data
+    const responseData = await response.text();
     
+    // Try to parse JSON response if possible
+    let result;
+    try {
+      result = JSON.parse(responseData);
+    } catch (e) {
+      result = { raw: responseData };
+    }
+    
+    // Check if request was successful
     if (!response.ok) {
-      console.error('Error sending email:', result);
+      console.error('Error sending email. Status:', response.status);
+      console.error('Response:', result);
       return false;
     }
     
