@@ -1,15 +1,21 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
 import { useSignIn } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useClerkTokenRedirect } from "@/hooks/useClerkTokenRedirect"; // Updated import path
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -25,9 +31,9 @@ interface LoginFormProps {
 
 const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { redirectToDocusaurus } = useClerkTokenRedirect();
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -37,22 +43,23 @@ const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    if (!isLoaded) {
-      return;
-    }
-    
+    if (!isLoaded) return;
+
     try {
       setIsLoading(true);
-      
+
       const result = await signIn.create({
         identifier: data.email,
         password: data.password,
       });
-      
+
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         toast.success("Signed in successfully");
-        navigate("/");
+
+        // 🔐 Redirect to Docusaurus with secure JWT
+        await redirectToDocusaurus(import.meta.env.VITE_DOCUSAURUS_SITE_URL);
+
         if (onSuccess) onSuccess();
       } else {
         toast.error("Something went wrong during sign in");
@@ -74,7 +81,12 @@ const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" type="email" {...field} autoComplete="email" />
+                <Input
+                  placeholder="name@example.com"
+                  type="email"
+                  {...field}
+                  autoComplete="email"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,9 +99,9 @@ const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>Password</FormLabel>
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto text-xs" 
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-xs"
                   type="button"
                   onClick={onForgotPassword}
                 >
@@ -97,15 +109,20 @@ const LoginForm = ({ onSuccess, onForgotPassword }: LoginFormProps) => {
                 </Button>
               </div>
               <FormControl>
-                <Input placeholder="********" type="password" {...field} autoComplete="current-password" />
+                <Input
+                  placeholder="********"
+                  type="password"
+                  {...field}
+                  autoComplete="current-password"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button 
-          className="w-full flex items-center justify-center gap-2" 
-          type="submit" 
+        <Button
+          className="w-full flex items-center justify-center gap-2"
+          type="submit"
           disabled={isLoading}
         >
           <LogIn className="w-4 h-4" />

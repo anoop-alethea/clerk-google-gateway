@@ -1,9 +1,6 @@
-
 import { useEffect, useState } from 'react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
 
 interface UserProfile {
   id: string;
@@ -13,67 +10,37 @@ interface UserProfile {
 }
 
 export const useUserProfile = () => {
-  const { user } = useUser();
-  const supabase = useSupabaseClient();
+  const { user, isLoaded } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user profile
+  // Simulate loading Clerk profile into expected format
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) {
-        setProfile(null);
-        setIsLoading(false);
-        return;
-      }
+    if (!isLoaded) return;
 
-      try {
-        // Using maybeSingle to handle potential missing profiles
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+    if (!user) {
+      setProfile(null);
+      setIsLoading(false);
+      return;
+    }
 
-        if (error) {
-          console.error('Error fetching profile:', error);
-        } else if (data) {
-          setProfile(data as UserProfile);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    const mappedProfile: UserProfile = {
+      id: user.id,
+      email: user.primaryEmailAddress?.emailAddress || '',
+      full_name: user.fullName || null,
+      created_at: user.createdAt.toString(), // Clerk returns a Date
     };
 
-    fetchProfile();
-  }, [user, supabase]);
+    setProfile(mappedProfile);
+    setIsLoading(false);
+  }, [user, isLoaded]);
 
-  // Update user profile
-  const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'email' | 'created_at'>>) => {
-    if (!user) return { success: false, error: 'User not authenticated' };
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-
-      if (error) {
-        toast.error('Failed to update profile');
-        return { success: false, error: error.message };
-      }
-
-      // Update the local state with the new values
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
-      toast.success('Profile updated successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('An error occurred while updating profile');
-      return { success: false, error: 'An error occurred' };
-    }
+  // Stub for profile updates (not possible if using only Clerk unless metadata is enabled)
+  const updateProfile = async (
+    updates: Partial<Omit<UserProfile, 'id' | 'email' | 'created_at'>>
+  ) => {
+    toast.error('Profile updates are disabled (no Supabase)');
+    return { success: false, error: 'Profile updates not supported without Supabase' };
   };
 
   return { profile, isLoading, updateProfile };

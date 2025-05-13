@@ -1,8 +1,0 @@
-
-project_id = "fhzpopoqdvrtxlxivsfd"
-
-[functions.send-access-request]
-verify_jwt = false
-
-[functions.send-admin-email]
-verify_jwt = false
