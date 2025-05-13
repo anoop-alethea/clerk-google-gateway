@@ -1,34 +1,36 @@
 
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { env } from "../config/env";
+import { useAuth } from "@clerk/clerk-react";
+import { useState, useEffect, useCallback } from "react";
 
-/**
- * Hook to get the Docusaurus auth URL with token
- */
-export function useDocusaurusAuth() {
-  const { isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+export const useDocusaurusAuth = () => {
+  const { getToken, isSignedIn } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
-  // Base URL of your Docusaurus site from environment variables
-  const docusaurusBaseUrl = env.DOCUSAURUS_SITE_URL;
-  
-  if (!isSignedIn || !user) {
-    return {
-      docusaurusUrl: null,
-      isAuthenticated: false
-    };
-  }
-  
-  const getDocusaurusUrl = async () => {
-    // Use Clerk's getToken method to get a JWT using the "WiCheckDocumentation" template
-    const token = await getToken({ template: "WiCheckDocumentation" });
-    
-    if (!token) return docusaurusBaseUrl;
-    return `${docusaurusBaseUrl}?token=${token}`;
-  };
-  
-  return {
-    getDocusaurusUrl,
-    isAuthenticated: true
-  };
-}
+  useEffect(() => {
+    setIsAuthenticated(!!isSignedIn);
+  }, [isSignedIn]);
+
+  const getDocusaurusUrl = useCallback(async () => {
+    try {
+      // Get the token from Clerk using the docusaurus template
+      const token = await getToken({ template: "WiCheckDocumentation" });
+      if (!token) {
+        throw new Error("Failed to generate authentication token");
+      }
+
+      // Get the Docusaurus site URL from environment
+      const docusaurusSiteUrl = import.meta.env.VITE_DOCUSAURUS_SITE_URL || 'http://localhost:3000';
+      
+      // Create URL with token
+      const url = new URL(docusaurusSiteUrl);
+      url.searchParams.append("token", token);
+      
+      return url.toString();
+    } catch (error) {
+      console.error("Error generating Docusaurus URL:", error);
+      throw error;
+    }
+  }, [getToken]);
+
+  return { isAuthenticated, getDocusaurusUrl };
+};

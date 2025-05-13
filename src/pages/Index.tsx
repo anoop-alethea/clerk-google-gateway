@@ -6,20 +6,16 @@ import { useNavigate, Link } from "react-router-dom";
 import { BookOpen, ExternalLink } from "lucide-react";
 import { useDocusaurusAuth } from "@/hooks/useDocusaurusAuth";
 import { useState } from "react";
-import { useSupabaseClient } from "@/hooks/useSupabaseClient";
 
 const Index = () => {
   const { signOut } = useAuth();
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient(); // Use the Supabase client with Clerk integration
   const navigate = useNavigate();
   const { getDocusaurusUrl, isAuthenticated } = useDocusaurusAuth();
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
-    // Also sign out from Supabase to keep both auth systems in sync
-    await supabase.auth.signOut();
     navigate("/login");
     toast.success("Signed out successfully");
   };

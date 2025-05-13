@@ -3,30 +3,12 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import React from 'react';
 
-// Mock Supabase
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ 
-        data: { session: null },
-        error: null 
-      }),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-      signInWithOAuth: vi.fn(),
-      onAuthStateChange: vi.fn().mockReturnValue({ 
-        data: { subscription: { unsubscribe: vi.fn() } }
-      })
-    }
-  }
-}));
-
 // Mock Clerk
 vi.mock('@clerk/clerk-react', () => ({
   useAuth: vi.fn().mockReturnValue({
     isLoaded: true,
-    isSignedIn: false
+    isSignedIn: false,
+    getToken: vi.fn().mockResolvedValue('mock-token')
   }),
   useSignIn: vi.fn().mockReturnValue({
     isLoaded: true,
@@ -41,6 +23,10 @@ vi.mock('@clerk/clerk-react', () => ({
       create: vi.fn(),
       prepareEmailAddressVerification: vi.fn()
     }
+  }),
+  useUser: vi.fn().mockReturnValue({
+    isLoaded: true,
+    user: null
   })
 }));
 

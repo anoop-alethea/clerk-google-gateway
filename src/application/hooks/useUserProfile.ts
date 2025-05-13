@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+
+import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 
@@ -12,35 +13,56 @@ interface UserProfile {
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!isLoaded);
 
-  // Simulate loading Clerk profile into expected format
-  useEffect(() => {
+  // Use Clerk user data directly
+  useState(() => {
     if (!isLoaded) return;
-
+    
     if (!user) {
       setProfile(null);
       setIsLoading(false);
       return;
     }
 
+    // Map Clerk user to our UserProfile format
     const mappedProfile: UserProfile = {
       id: user.id,
       email: user.primaryEmailAddress?.emailAddress || '',
-      full_name: user.fullName || null,
-      created_at: user.createdAt.toString(), // Clerk returns a Date
+      full_name: user.fullName,
+      created_at: user.createdAt?.toISOString() || new Date().toISOString(),
     };
 
     setProfile(mappedProfile);
     setIsLoading(false);
-  }, [user, isLoaded]);
+  });
 
-  // Stub for profile updates (not possible if using only Clerk unless metadata is enabled)
+  // Stub for profile updates (using Clerk's user update methods)
   const updateProfile = async (
     updates: Partial<Omit<UserProfile, 'id' | 'email' | 'created_at'>>
   ) => {
-    toast.error('Profile updates are disabled (no Supabase)');
-    return { success: false, error: 'Profile updates not supported without Supabase' };
+    try {
+      if (!user) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      // Update the user's full name in Clerk
+      if (updates.full_name) {
+        await user.update({
+          firstName: updates.full_name.split(' ')[0] || '',
+          lastName: updates.full_name.split(' ').slice(1).join(' ') || '',
+        });
+
+        // Update local state
+        setProfile(prev => prev ? { ...prev, ...updates } : null);
+        return { success: true };
+      }
+
+      return { success: false, error: 'No changes to apply' };
+    } catch (error) {
+      toast.error('Failed to update profile');
+      return { success: false, error: String(error) };
+    }
   };
 
   return { profile, isLoading, updateProfile };
