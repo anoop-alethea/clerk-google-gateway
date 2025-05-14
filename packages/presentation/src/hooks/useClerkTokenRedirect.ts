@@ -1,5 +1,7 @@
 
 import { useAuth } from "@clerk/clerk-react";
+import { toast } from "sonner";
+import { isAllowedDomain } from "../../../web/src/config/env";
 
 /**
  * Hook to redirect the user to the Docusaurus app with a secure Clerk JWT.
@@ -12,6 +14,12 @@ export const useClerkTokenRedirect = () => {
     template = "docusaurus"
   ): Promise<void> => {
     try {
+      // Validate target domain for security
+      if (!isAllowedDomain(docusaurusUrl)) {
+        toast.error("Redirect blocked: Domain not in allowed list");
+        throw new Error(`Domain security error: ${new URL(docusaurusUrl).hostname} is not in allowed domains list`);
+      }
+
       const token = await getToken({ template });
 
       if (!token) {

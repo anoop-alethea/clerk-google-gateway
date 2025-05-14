@@ -1,6 +1,8 @@
 
 import { useAuth } from "@clerk/clerk-react";
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { isAllowedDomain } from "../../../web/src/config/env";
 
 export const useDocusaurusAuth = () => {
   const { getToken, isSignedIn } = useAuth();
@@ -20,6 +22,12 @@ export const useDocusaurusAuth = () => {
 
       // Get the Docusaurus site URL from environment
       const docusaurusSiteUrl = import.meta.env.VITE_DOCUSAURUS_SITE_URL || 'http://localhost:3000';
+      
+      // Validate target domain for security
+      if (!isAllowedDomain(docusaurusSiteUrl)) {
+        toast.error("Redirect blocked: Domain not in allowed list");
+        throw new Error(`Domain security error: ${new URL(docusaurusSiteUrl).hostname} is not in allowed domains list`);
+      }
       
       // Create URL with token
       const url = new URL(docusaurusSiteUrl);

@@ -13,6 +13,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      cors: {
+        origin: env.VITE_ALLOWED_REDIRECT_DOMAINS 
+          ? env.VITE_ALLOWED_REDIRECT_DOMAINS.split(',')
+          : ['http://localhost:3000'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true,
+      }
     },
     plugins: [
       react(),
