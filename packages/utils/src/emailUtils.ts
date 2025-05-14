@@ -111,7 +111,6 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
           </body>
         </html>
       `,
-      // Adding text version as a fallback for email clients that don't support HTML
       text: `
 New Access Request Received
 
@@ -132,9 +131,8 @@ Please review this request at your earliest convenience.
       ]
     };
     
-    // Add additional debugging
-    console.log('Sending email to:', adminEmail);
-    console.log('Using Resend API key:', `${RESEND_API_KEY.substring(0, 5)}...`);
+    // Add more detailed logging
+    console.log('Preparing to send email to admin:', adminEmail);
     
     // Send the email via Resend API with improved error handling
     const response = await fetch('https://api.resend.com/emails', {
@@ -149,12 +147,15 @@ Please review this request at your earliest convenience.
     
     // Get response data
     const responseData = await response.text();
+    console.log('Resend API raw response:', responseData);
     
     // Try to parse JSON response if possible
     let result;
     try {
       result = JSON.parse(responseData);
+      console.log('Parsed response:', result);
     } catch (e) {
+      console.error('Error parsing response:', e);
       result = { raw: responseData };
     }
     
@@ -162,6 +163,12 @@ Please review this request at your earliest convenience.
     if (!response.ok) {
       console.error('Error sending email. Status:', response.status);
       console.error('Response:', result);
+      
+      // If we got a 401 Unauthorized error, the API key is likely invalid
+      if (response.status === 401) {
+        console.error('API key is likely invalid or expired');
+      }
+      
       return false;
     }
     

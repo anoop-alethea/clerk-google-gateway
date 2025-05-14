@@ -1,4 +1,3 @@
-
 /**
  * Validate domains and URLs for security and CORS
  */
@@ -65,3 +64,51 @@ export const createCorsHeaders = (
     'Access-Control-Allow-Credentials': 'true',
   };
 };
+
+/**
+ * Get the currently configured Resend API status
+ * This helps debug email sending issues
+ */
+export async function checkResendApiStatus(): Promise<{
+  isConfigured: boolean;
+  status: string;
+}> {
+  try {
+    // The Resend API key
+    const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
+    
+    if (!RESEND_API_KEY || RESEND_API_KEY.trim() === '') {
+      return {
+        isConfigured: false,
+        status: "API key not configured"
+      };
+    }
+    
+    // Just check if we can get domains - this doesn't send an email
+    // but verifies our API key works
+    const response = await fetch('https://api.resend.com/domains', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      return {
+        isConfigured: true,
+        status: "API key valid and working"
+      };
+    } else {
+      return {
+        isConfigured: false,
+        status: `API error: ${response.status} - ${response.statusText}`
+      };
+    }
+  } catch (error) {
+    return {
+      isConfigured: false,
+      status: `Error checking API: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
