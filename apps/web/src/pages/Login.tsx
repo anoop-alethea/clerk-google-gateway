@@ -42,7 +42,7 @@ const Login = () => {
   const renderDescription = () => {
     switch (authScreen) {
       case "request-access":
-        return "Submit your details to request access to the platform";
+        return "Submit your details to request access to the platform. Our team will review and contact you.";
       case "forgot-password":
         return "Reset your password via email";
       default:
