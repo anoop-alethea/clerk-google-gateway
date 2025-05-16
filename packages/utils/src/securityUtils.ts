@@ -1,3 +1,4 @@
+
 /**
  * Validate domains and URLs for security and CORS
  */
@@ -72,20 +73,29 @@ export const createCorsHeaders = (
 export async function checkResendApiStatus(): Promise<{
   isConfigured: boolean;
   status: string;
+  apiKey: string;
 }> {
   try {
     // The Resend API key
     const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
     
+    // Log a masked version of the API key for debugging
+    const maskedKey = RESEND_API_KEY ? 
+      `${RESEND_API_KEY.substring(0, 5)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}` : 
+      'not provided';
+    console.log(`Checking Resend API with key: ${maskedKey}`);
+    
     if (!RESEND_API_KEY || RESEND_API_KEY.trim() === '') {
       return {
         isConfigured: false,
-        status: "API key not configured"
+        status: "API key not configured",
+        apiKey: 'missing'
       };
     }
     
     // Just check if we can get domains - this doesn't send an email
     // but verifies our API key works
+    console.log('Sending test request to Resend API to check key validity...');
     const response = await fetch('https://api.resend.com/domains', {
       method: 'GET',
       headers: {
@@ -94,21 +104,31 @@ export async function checkResendApiStatus(): Promise<{
       }
     });
     
+    console.log('Resend API test response status:', response.status);
+    
     if (response.ok) {
+      const data = await response.json();
+      console.log('Resend API test response data:', data);
       return {
         isConfigured: true,
-        status: "API key valid and working"
+        status: "API key valid and working",
+        apiKey: 'valid'
       };
     } else {
+      const errorText = await response.text();
+      console.error('Resend API error response:', errorText);
       return {
         isConfigured: false,
-        status: `API error: ${response.status} - ${response.statusText}`
+        status: `API error: ${response.status} - ${response.statusText}. Details: ${errorText}`,
+        apiKey: 'invalid'
       };
     }
   } catch (error) {
+    console.error('Error checking Resend API:', error);
     return {
       isConfigured: false,
-      status: `Error checking API: ${error instanceof Error ? error.message : String(error)}`
+      status: `Error checking API: ${error instanceof Error ? error.message : String(error)}`,
+      apiKey: 'error'
     };
   }
 }

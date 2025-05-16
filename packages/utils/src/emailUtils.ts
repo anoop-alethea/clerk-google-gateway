@@ -71,12 +71,26 @@ export async function sendAccessRequestNotification(data: AccessRequestData): Pr
   try {
     // Define the admin email - Make sure this is correct
     const adminEmail = "anoop.appukuttan@aletheatech.com";
+    console.log('Target admin email:', adminEmail);
     
     // The Resend API key
     const RESEND_API_KEY = "re_AkjbVfeP_L67mSXrc7r8sDsF76jG5f1n7";
     
+    // Check API key validity before attempting to send email
+    const apiStatus = await import('./securityUtils').then(module => 
+      module.checkResendApiStatus()
+    );
+    
+    console.log('Resend API status check results:', apiStatus);
+    
+    if (!apiStatus.isConfigured) {
+      console.error('Resend API key is not properly configured:', apiStatus.status);
+      return false;
+    }
+    
     // Generate a unique idempotency key to prevent duplicate emails
     const idempotencyKey = generateIdempotencyKey(data);
+    console.log('Generated idempotency key:', idempotencyKey);
     
     // Prepare the email content with improved HTML formatting
     const emailContent = {
@@ -131,10 +145,11 @@ Please review this request at your earliest convenience.
       ]
     };
     
-    // Add more detailed logging
-    console.log('Preparing to send email to admin:', adminEmail);
+    console.log('Preparing email payload:', JSON.stringify(emailContent, null, 2));
+    console.log('Sending email to admin:', adminEmail);
     
     // Send the email via Resend API with improved error handling
+    console.log('Sending request to Resend API...');
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
