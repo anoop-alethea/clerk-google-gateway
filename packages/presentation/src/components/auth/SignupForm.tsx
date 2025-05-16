@@ -7,7 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
-import { sendAccessRequestNotification } from "@monorepo/utils";
+import { sendAccessRequestNotification, checkResendApiStatus } from "@monorepo/utils";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -26,6 +28,7 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<{isConfigured: boolean; status: string; apiKey: string} | null>(null);
   
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -44,6 +47,11 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
       
       console.log("Submitting access request with data:", data);
       
+      // Check Resend API status first
+      const resendStatus = await checkResendApiStatus();
+      setApiStatus(resendStatus);
+      console.log("Resend API status:", resendStatus);
+      
       // Store the user data locally regardless of email success
       // This ensures we don't lose the information even if email fails
       const storedRequests = localStorage.getItem('accessRequests') || '[]';
@@ -53,6 +61,7 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
         requestedAt: new Date().toISOString()
       });
       localStorage.setItem('accessRequests', JSON.stringify(requests));
+      console.log("Request stored in localStorage");
       
       // Send notification email to admin
       const success = await sendAccessRequestNotification({
@@ -70,14 +79,12 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
         if (onSuccess) onSuccess();
       } else {
         console.error("Email sending failed but user data was stored");
-        // Even if email fails, still show success to user but log the issue
-        setRequestSent(true);
-        toast.success("Your access request has been submitted");
+        // Show error to user but let them know the request was still recorded
+        setError("We couldn't send the notification email, but your request has been recorded. Our team will review it soon.");
+        toast.error("Email notification failed, but your request was recorded");
         
-        // Log the error but don't show it to the user
+        // Log the error
         console.error("Admin notification email failed, but request was recorded");
-        
-        if (onSuccess) onSuccess();
       }
     } catch (error: any) {
       console.error("Error in access request submission:", error);
@@ -106,9 +113,20 @@ const SignupForm = ({ onSuccess }: SignupFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {error && (
-          <div className="p-3 bg-destructive/15 text-destructive text-sm rounded">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {apiStatus && !apiStatus.isConfigured && (
+          <Alert variant="warning" className="bg-amber-50 text-amber-800 border-amber-200">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>API Configuration Issue</AlertTitle>
+            <AlertDescription>
+              There may be an issue with our email service. Your request will still be recorded.
+            </AlertDescription>
+          </Alert>
         )}
         <FormField
           control={form.control}
